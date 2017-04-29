@@ -23,9 +23,9 @@ export class AppComponent {
     this.hasAnotherDropZoneOver = e;
   }
 
-  constructor(
-	  private http:Http
-  ) { }
+//   constructor(
+// 	  private http:Http
+//   ) { }
 
   uploadSampleFile(){
 	// console.debug("posting sample file to server");

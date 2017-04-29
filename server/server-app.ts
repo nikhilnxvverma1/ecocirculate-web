@@ -5,6 +5,7 @@ import path = require('path');
 import orientjs = require('orientjs');
 import winston = require('winston');
 import bodyParser = require('body-parser');
+import { UserBackend,AuthenticationResult,statusCodeForLogin,statusCodeForSignup } from './user.backend';
 const multer = require('multer');
 
 export class ServerApp {
@@ -12,10 +13,12 @@ export class ServerApp {
 	private app: express.Application;
 	private db:orientjs.Db;
 	private multer:any;
+	private userBackend:UserBackend;
     
 	constructor(db?:orientjs.Db) {
 		this.app = express();
 		this.db=db;
+		this.userBackend=new UserBackend(this.db);
 	}
     
     public setRoutes() {        //the order matters here
@@ -45,13 +48,40 @@ export class ServerApp {
 
 		this.app.post('/api/sample-upload', (req:express.Request, res:express.Response) =>{
 			this.multer(req,res,(error:Error)=>{
-				console.log("got a file here ");
+				winston.debug("got a file here ");
 				if(error){
 					console.error("Error occured while uploading file");
 				}
 				res.send("File is uploaded");
 			});
 
+		});
+
+		//rough work
+		this.app.get('/api/sample-json', (req:express.Request, res:express.Response) => {
+            winston.debug("Rough work for development purposes");
+            //Do rough work in this end point
+			let obj={
+				first:"hello",
+				second:"world"
+			}
+			res.send(JSON.stringify(obj));
+			
+			//--------------------------------
+		});
+
+		//login authentication
+		this.app.post('/api/authenticate-user', (req:express.Request, res:express.Response) => {
+			winston.debug("Attempting to login user");
+			this.userBackend.authenticateUser((<any>req).body).
+			then((result:AuthenticationResult)=>{
+				//if authentic, store the user model in the session
+				if(result.attempt==0){
+					(<any>req).session.user=result.user;
+				}
+				//respond back with an appropriate status code
+				jsonHeader(res).status(statusCodeForLogin(result.attempt)).send(JSON.stringify(result.attempt));
+			});
 		});
 
 	}
