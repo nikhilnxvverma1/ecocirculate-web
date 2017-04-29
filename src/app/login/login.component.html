@@ -1,3 +1,4 @@
+<h1>Login</h1>
 <form (ngSubmit)="login()" #loginForm="ngForm">
 	<input id="email" type="text" name="email" [(ngModel)]="attempt.email" required>
 	<input type="password" name="password" [(ngModel)]="attempt.password" required>
@@ -6,3 +7,5 @@
 		{{message}}
 	</ng-container>
 </form>
+
+<app-signup></app-signup>

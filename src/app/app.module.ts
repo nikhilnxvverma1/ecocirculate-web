@@ -8,18 +8,24 @@ import { FileUploadModule } from 'ng2-file-upload';
 import { AppComponent } from './app.component';
 import { LoginComponent } from './login/login.component';
 import { UserService } from './user.service';
+import { AccountModule } from './account/account.module';
+import { AppRoutingModule } from './app-routing.module';
+import { SignupComponent } from './signup/signup.component';
 
 @NgModule({
   declarations: [
     AppComponent,
-    LoginComponent
+    LoginComponent,
+    SignupComponent
   ],
   imports: [
     BrowserModule,
     FormsModule,
     HttpModule,
 	RouterModule,
-	FileUploadModule
+	FileUploadModule,
+	AppRoutingModule,
+	AccountModule
   ],
   providers: [UserService],
   bootstrap: [AppComponent]

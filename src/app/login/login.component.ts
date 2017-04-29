@@ -15,7 +15,7 @@ export class LoginComponent implements OnInit {
 	private attempt:LoginAttempt=new LoginAttempt();
 
 	constructor(
-		// private router:Router,
+		private router:Router,
 		private userService:UserService
 	) { }
 
@@ -27,14 +27,10 @@ export class LoginComponent implements OnInit {
 		console.debug("attempting to login");
 
 		this.userService.login(this.attempt).subscribe((pass:boolean)=>{
-			if(pass){
-				// this.router.navigate(["/home"]);
-				this.shouldShowMessage=true;
-				this.message="Please wait";
-			}else{
-				this.shouldShowMessage=true;
-				this.message="Username or password is incorrect";
-			}
+			this.router.navigate(["/home"]);
+			this.shouldShowMessage=true;
+			this.message="Please wait";
+			console.log("User authenticatedd");
 		},(error:any)=>{
 			if(error.status==401 && error._body==3){
 				this.message="Invalid username or password";
@@ -45,10 +41,6 @@ export class LoginComponent implements OnInit {
 				console.debug("error "+error);
 			}
 		})
-
-
-		this.shouldShowMessage=true;
-		this.message="You clicked the button";
 
 	}
 

@@ -5,6 +5,7 @@ import path = require('path');
 import orientjs = require('orientjs');
 import winston = require('winston');
 import bodyParser = require('body-parser');
+import session = require('express-session');
 import { UserBackend,AuthenticationResult,statusCodeForLogin,statusCodeForSignup } from './user.backend';
 const multer = require('multer');
 
@@ -27,6 +28,10 @@ export class ServerApp {
 		this.app.use(bodyParser.urlencoded({
 			extended:false
 		}));
+
+		//TODO WARNING: the secret should not be stored in code.(Dev purposes only)
+		//TODO Replace with mongo connect or redis store, in memory is not suitable for production
+		this.app.use(session({secret:"sdf923jk23asf01gasds42",saveUninitialized:true,resave:false}));
 
 		this.configureAPIRoutes();
 		
@@ -83,6 +88,17 @@ export class ServerApp {
 				jsonHeader(res).status(statusCodeForLogin(result.attempt)).send(JSON.stringify(result.attempt));
 			});
 		});
+
+
+		//create a user
+		this.app.post('/api/create-user', (req:express.Request, res:express.Response) => {
+			winston.debug("Attempting to create new user");
+			this.userBackend.checkAndCreateNewUser((<any>req).body).
+			then((attempt:number)=>{
+				//respond back with an appropriate status code
+				jsonHeader(res).status(statusCodeForSignup(attempt)).send(JSON.stringify(attempt));
+			});
+		})
 
 	}
 
