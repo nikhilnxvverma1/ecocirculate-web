@@ -1,3 +1,12 @@
 <h1>
   {{title}}
 </h1>
+Upload file
+<input type="file" ng2FileSelect [uploader]="uploader" />
+<div ng2FileDrop 
+	(fileOver)="fileOverBase($event)" 
+	[uploader]="uploader"
+	class="well my-drop-zone">
+			Base drop zone
+	</div>
+<button type="button" (click)="uploader.uploadAll()" [disabled]="!uploader.getNotUploadedItems().length">Upload</button>

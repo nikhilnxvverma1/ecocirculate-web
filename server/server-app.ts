@@ -5,11 +5,13 @@ import path = require('path');
 import orientjs = require('orientjs');
 import winston = require('winston');
 import bodyParser = require('body-parser');
+const multer = require('multer');
 
 export class ServerApp {
     
 	private app: express.Application;
 	private db:orientjs.Db;
+	private multer:any;
     
 	constructor(db?:orientjs.Db) {
 		this.app = express();
@@ -22,10 +24,18 @@ export class ServerApp {
 		this.app.use(bodyParser.urlencoded({
 			extended:false
 		}));
+
 		this.configureAPIRoutes();
 		
 		//static resources (is amongst the main folders in the root of the project)
 		this.app.use('/', express.static(path.join(__dirname, '../', 'dist')));//for one level
+
+		//setup file uploads using multer
+		this.multer=multer({
+			dest: "./uploads/"
+		}).any();
+		this.app.use(this.multer);
+
 
 		//all other routes are handled by angular
 		this.app.get('/*', this._homePage);//this should be in the end
@@ -33,6 +43,16 @@ export class ServerApp {
 
 	private configureAPIRoutes(){
 
+		this.app.post('/api/sample-upload', (req:express.Request, res:express.Response) =>{
+			this.multer(req,res,(error:Error)=>{
+				console.log("got a file here ");
+				if(error){
+					console.error("Error occured while uploading file");
+				}
+				res.send("File is uploaded");
+			});
+
+		});
 
 	}
 
