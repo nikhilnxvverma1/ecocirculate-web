@@ -6,6 +6,8 @@ import { AccountRoutingModule } from './account-routing.module';
 import { HttpModule } from '@angular/http';
 import { BrowserModule } from '@angular/platform-browser';
 import { FormsModule } from '@angular/forms';
+import { FileBrowserComponent } from './file-browser/file-browser.component';
+import { BreadcrumbComponent } from './breadcrumb/breadcrumb.component';
 
 
 @NgModule({
@@ -16,6 +18,6 @@ import { FormsModule } from '@angular/forms';
 	AccountRoutingModule,
   ],
   schemas:[CUSTOM_ELEMENTS_SCHEMA],
-  declarations: [HomeComponent]
+  declarations: [HomeComponent, FileBrowserComponent, BreadcrumbComponent]
 })
 export class AccountModule { }
