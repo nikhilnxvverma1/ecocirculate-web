@@ -109,7 +109,8 @@ export class SchemaBackend{
 	private ensureFileSystem():Promise<ojs.Class>{
 		return this.createClassIfNotExists(FILESYSTEM,[
 			{name:"topLevelFolders",type:"LinkList",linkedClass:FOLDER},
-			{name:"topLevelFiles",type:"LinkList",linkedClass:FILE}
+			{name:"topLevelFiles",type:"LinkList",linkedClass:FILE},
+			{name:"creationDate",type:"Date"}
 		],"V");//extends the generic 'Vertex' class
 	}
 

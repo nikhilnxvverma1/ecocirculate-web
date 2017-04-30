@@ -26,14 +26,15 @@ export class UserBackend{
 		})
 	}
 
-	private insertNewUser(user:any,fileSystem:ojs.Record):Promise<number>{
+	private insertNewUser(user:any,fileSystem:any):Promise<number>{
  		return this.db.insert().into('User').set({
 			firstName:user.firstName,
 			lastName:user.lastName,
 			email:user.email,
 			password:user.password,
 			gender:user.gender==undefined?'undisclosed':user.gender,
-			dateOfBirth:user.dateOfBirth
+			dateOfBirth:user.dateOfBirth,
+			fileSystem:fileSystem['@rid']
 		}).one().then(()=>{
 			return 0;//success
 		}).catch((error:Error)=>{
