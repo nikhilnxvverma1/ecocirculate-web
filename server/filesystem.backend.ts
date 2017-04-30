@@ -23,7 +23,6 @@ export class FileSystemBackend{
 		return this.fileOrFolder(name,true,currentFolder,user).
 		then((r:any)=>{
 			if(r.item==null){
-
 				return this.db.insert().into('Folder').set({
 					name:name,
 					creationDate:new Date(),
@@ -31,7 +30,14 @@ export class FileSystemBackend{
 				}).one().
 				then((r:any)=>{
 					return this.updateFolderAttributes(r,currentFolder,user);
-				})
+				}).
+				then((result:any)=>{
+					if(result.response.status==0){
+						return this.attachFileOrFolderFolderToParent(result.response.folder,true,currentFolder,user);
+					}else{
+						return result;
+					}
+				});
 			}else{
 				return {code:500,response:{status:1,message:"Folder name already exists"}};
 			}
@@ -52,6 +58,52 @@ export class FileSystemBackend{
 		then((v:any[])=>{
 			return {code:200,response:{status:0,message:"Success",folder:v[0]}};
 		});
+	}
+
+	private attachFileOrFolderFolderToParent(fileOrFolder:any,isFolder:boolean,containerFolder:any,user:any):Promise<any>{
+		let type=isFolder?"Folder":"File";
+		
+		if(containerFolder==null){
+			return this.db.query(`Select from User where @rid='${user['@rid']}'`).
+			then((rs:any[])=>{
+				if(rs.length==0){
+					Promise.resolve({code:500,response:{status:1,message:"No such user exist"}});
+				}
+				let fileSystemRID=rs[0]['fileSystem'];
+				let query:string;
+				
+				if(isFolder){
+					query=`Update FileSystem add topLevelFolders = ${fileOrFolder['@rid']} return after @this where @rid = '${fileSystemRID}'`;
+				}else{
+					query=`Update FileSystem add topLevelFiles = ${fileOrFolder['@rid']} return after @this where @rid = '${fileSystemRID}'`;
+				}
+				return this.db.query(query).
+				then((v:any[])=>{
+					return {code:200,response:{status:0,message:"Success",folder:fileOrFolder}};
+				}).catch((error:Error)=>{
+					winston.error("Attach to filesystem: "+error.message);
+					return {code:500,response:{status:2,message:error.message}}
+				});
+			});
+		}else{
+			let updateParentsList:string;
+			//on adding to link list, there are not quotation marks around RID
+			if(isFolder){
+				updateParentsList=`Update Folder add folderList = ${fileOrFolder['@rid']} return after @this where @rid = '${containerFolder}'`;
+			}else{
+				updateParentsList=`Update Folder add fileList = ${fileOrFolder['@rid']} return after @this where @rid = '${containerFolder}'`;
+			}
+			return this.db.query(updateParentsList).
+			then((v:any[])=>{
+				return this.db.query(`Update ${type} set parentFolder='${v[0]['@rid']}'`)
+			}).
+			then((v:any[])=>{
+				return {code:200,response:{status:0,message:"Success",folder:fileOrFolder}};
+			}).catch((error:Error)=>{
+				winston.error("Attach to parent: "+error.message);
+				return {code:500,response:{status:3,message:error.message}}
+			});
+		}
 	}
 
 	fileOrFolder(name:string,isFolder:boolean,containerFolderRID:string,user:any):Promise<any>{
