@@ -7,6 +7,7 @@ import winston = require('winston');
 import bodyParser = require('body-parser');
 import session = require('express-session');
 import { UserBackend,AuthenticationResult,statusCodeForLogin,statusCodeForSignup } from './user.backend';
+import { FileSystemBackend } from './filesystem.backend';
 const multer = require('multer');
 
 export class ServerApp {
@@ -15,11 +16,14 @@ export class ServerApp {
 	private db:orientjs.Db;
 	private multer:any;
 	private userBackend:UserBackend;
+	private fileSystemBackend:FileSystemBackend;
+
     
 	constructor(db?:orientjs.Db) {
 		this.app = express();
 		this.db=db;
 		this.userBackend=new UserBackend(this.db);
+		this.fileSystemBackend=new FileSystemBackend(this.db);
 	}
     
     public setRoutes() {        //the order matters here
@@ -83,12 +87,12 @@ export class ServerApp {
 				//if authentic, store the user model in the session
 				if(result.attempt==0){
 					(<any>req).session.user=result.user;
+					winston.debug("setting user in session(without the password)");
 				}
 				//respond back with an appropriate status code
 				jsonHeader(res).status(statusCodeForLogin(result.attempt)).send(JSON.stringify(result.attempt));
 			});
 		});
-
 
 		//create a user
 		this.app.post('/api/create-user', (req:express.Request, res:express.Response) => {
@@ -99,6 +103,37 @@ export class ServerApp {
 				jsonHeader(res).status(statusCodeForSignup(attempt)).send(JSON.stringify(attempt));
 			});
 		})
+
+		//logout user
+		this.app.post('/api/logout', (req:express.Request, res:express.Response) => {
+			winston.debug("Clearing user out of session: logout user");
+			let loggedInUser=(<any>req).session.user;
+			if(!loggedInUser){
+				res.status(500).send("User already not in session");
+			}else{
+				(<any>req).session.destroy();
+				res.send(JSON.stringify(0));
+			}
+		});
+
+
+		//create a new folder
+		this.app.post('/api/new-folder', (req:express.Request, res:express.Response) => {
+			winston.debug("Creating a new folder");
+			let loggedInUser=(<any>req).session.user;
+			if(!loggedInUser){
+				res.status(401).send("user not found");
+			}else{
+				jsonHeader(res).status(200).send(JSON.stringify({result:"This works"}));
+				// this.fileSystemBackend.checkAndCreateNewFolder((<any>req).body,(<any>req).session.user).
+				// then((attempt:any)=>{
+				// 	//respond back with an appropriate status code
+				// 	jsonHeader(res).status(attempt.code).send(JSON.stringify(attempt.response));
+				// });
+			}
+		})
+
+
 
 	}
 
