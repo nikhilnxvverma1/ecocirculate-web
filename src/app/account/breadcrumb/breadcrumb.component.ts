@@ -38,7 +38,7 @@ export class BreadcrumbComponent implements OnInit {
 		// call the service
 		this.fileSystemService.createNewFolder(this.newFolder,this.fileSystem).
 		subscribe((v:any)=>{
-			this.newFolder.rid=v['@rid'];
+			this.newFolder.rid=v.folder['@rid'];
 			this.fileSystem.insertFolderUnderCurrentFolder(this.newFolder);
 			this.newFolderPrompt=false;
 			this.newFolder=null;

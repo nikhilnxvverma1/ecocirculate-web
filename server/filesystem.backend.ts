@@ -22,17 +22,27 @@ export class FileSystemBackend{
 		return this.db.query(`Select from User where @rid = '${user['@rid']}'`).
 		then((rs:any[])=>{
 			if(rs.length==0){
-				return {code:500,response:{status:1,message:"No record for file system found"}};
+				Promise.resolve({code:500,response:{status:1,message:"No record for file system found"}});
 			}else{
 				const fileSystemRID=rs[0]['fileSystem'];
 
 				return this.db.query(`Select from FileSystem where @rid = '${fileSystemRID}'`).
 				then((rs:any[])=>{
 					if(rs.length==0){
-						return {code:500,response:{status:2,message:"No file system object found"}};
+						Promise.resolve({code:500,response:{status:2,message:"No file system object found"}});
 					}else{
 						const fileSystem=rs[0];
-						return {code:200,response:{status:0,message:"Success",fileSystem:fileSystem}};
+						let folderList:any=null;
+						let fileList:any=null;
+						return this.db.query(`Select from Folder where @rid in [${fileSystem.topLevelFolders}]`).
+						then((rs:any[])=>{
+							folderList=rs;
+							return this.db.query(`Select from File where @rid in [${fileSystem.topLevelFiles}]`)
+						}).
+						then((rs:any[])=>{
+							fileList=rs;
+							return {code:200,response:{status:0,message:"Success",fileSystem:fileSystem,folderList:folderList,fileList:fileList}};
+						})
 					}
 				})
 			}
@@ -43,11 +53,22 @@ export class FileSystemBackend{
 		return this.db.query(`Select from Folder where @rid = '${folderRID}' and owner = '${user['@rid']}'`).
 		then((rs:any[])=>{
 			if(rs.length==0){
-				return {code:500,response:{status:1,message:"No such folder exists"}};
+				return Promise.resolve({code:500,response:{status:1,message:"No such folder exists"}});
 			}else{
 				const folder=rs[0];
-				return {code:200,response:{status:0,message:"Success",
-				folder:folder}};
+				let folderList:any=null;
+				let fileList:any=null;
+				// return {code:200,response:{status:0,message:"Success",folder:folder}};
+				return this.db.query(`Select from Folder where @rid in [${folder.folderList}]`).
+				then((rs:any[])=>{
+					folderList=rs;
+					return this.db.query(`Select from File where @rid in [${folder.fileList}]`)
+				}).
+				then((rs:any[])=>{
+					fileList=rs;
+					return {code:200,response:{status:0,message:"Success",folder:folder,folderList:folderList,fileList:fileList}};
+					// Promise.resolve({code:200,response:{status:0,message:"Success",folder:folder,folderList:folderList,fileList:fileList}});
+				})
 			}
 		})
 	}

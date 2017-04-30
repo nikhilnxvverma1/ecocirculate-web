@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { FileSystem,Folder,File } from '../../../models/file-system';
+import { FileSystemService } from '../file-system.service';
 
 @Component({
   selector: 'app-file-browser',
@@ -12,11 +13,15 @@ export class FileBrowserComponent implements OnInit {
 	private folderList:Folder[];
 	private fileList:File[];
 
-	constructor() { }
+	constructor(
+		private fileSystemService:FileSystemService
+	) { }
+
 
 	ngOnInit() {
 
-		this.makeDummy();
+		// this.makeDummy();
+		this.loadFileSystem();
 		this.folderList=this.fileSystem.topLevelFolders;
 		this.fileList=this.fileSystem.topLevelFiles;
 
@@ -38,6 +43,14 @@ export class FileBrowserComponent implements OnInit {
 			file.name=`File-${i+1}`;
 			this.fileSystem.topLevelFiles.push(file);
 		}
+	}
+
+	private loadFileSystem(){
+		this.fileSystemService.getFileSystem().subscribe((v:FileSystem)=>{
+			this.fileSystem=v;
+		},(error:any)=>{
+			console.log(error);
+		})
 	}
 
 	selectFolder(folder:Folder){

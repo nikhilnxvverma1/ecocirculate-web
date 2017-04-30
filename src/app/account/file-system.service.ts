@@ -24,4 +24,18 @@ export class FileSystemService {
 		return this.http.post("/api/new-folder",JSON.stringify(requestObject),options).map((res:Response)=>{return res.json()});
 	}
 
+	getFileSystem():Observable<FileSystem>{
+		
+		console.log("Fetching file system");
+		let headers = new Headers({ 'Content-Type': 'application/json' });
+		let options=new RequestOptions({headers:headers});
+		return this.http.get("/api/file-system",options).map((res:Response)=>{return this.fileSystemFrom(res.json())});
+	}
+
+	private fileSystemFrom(json:any):FileSystem{
+		let fileSystem=new FileSystem();
+		fileSystem.rid=json.fileSystem['@rid'];
+		return fileSystem;
+	}
+
 }
