@@ -209,7 +209,24 @@ export class ServerApp {
 			if(!loggedInUser){
 				res.status(401).send("user not found");
 			}else{
-				jsonHeader(res).status(200).send(JSON.stringify({result:"file-system works"}));
+				this.fileSystemBackend.fileSystemFor(loggedInUser).
+				then((attempt:any)=>{
+					jsonHeader(res).status(attempt.code).send(JSON.stringify(attempt.response));
+				})
+			}
+		});
+
+		this.app.get('/api/folder', (req:express.Request, res:express.Response) => {
+			winston.debug("Getting the folder of the specified rid from user");
+			let loggedInUser=(<any>req).session.user;
+			if(!loggedInUser){
+				res.status(401).send("user not found");
+			}else{
+				let folderRID=(<any>req).body.folder;
+				this.fileSystemBackend.checkOwnershipAndReturnFolder(folderRID,loggedInUser).
+				then((attempt:any)=>{
+					jsonHeader(res).status(attempt.code).send(JSON.stringify(attempt.response));
+				})
 			}
 		});
 

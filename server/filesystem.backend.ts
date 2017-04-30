@@ -18,6 +18,57 @@ export class FileSystemBackend{
 		});
 	}
 
+	fileSystemFor(user:any):Promise<any>{
+		return this.db.query(`Select from User where @rid = '${user['@rid']}'`).
+		then((rs:any[])=>{
+			if(rs.length==0){
+				return {code:500,response:{status:1,message:"No record for file system found"}};
+			}else{
+				const fileSystemRID=rs[0]['fileSystem'];
+
+				return this.db.query(`Select from FileSystem where @rid = '${fileSystemRID}'`).
+				then((rs:any[])=>{
+					if(rs.length==0){
+						return {code:500,response:{status:2,message:"No file system object found"}};
+					}else{
+						const fileSystem=rs[0];
+						return {code:200,response:{status:0,message:"Success",fileSystem:fileSystem}};
+					}
+				})
+			}
+		})
+	}
+
+	checkOwnershipAndReturnFolder(folderRID:string,user:any):Promise<any>{
+		return this.db.query(`Select from Folder where @rid = '${folderRID}' and owner = '${user['@rid']}'`).
+		then((rs:any[])=>{
+			if(rs.length==0){
+				return {code:500,response:{status:1,message:"No such folder exists"}};
+			}else{
+				const folder=rs[0];
+				return {code:200,response:{status:0,message:"Success",
+				folder:folder}};
+			}
+		})
+	}
+
+	/** Folder items can contain cyclic and circular references. (TODO unused and should be removed) */
+	private removeCyclicAndRecursiveReferences(folder:any):any{
+
+		//remove parent folder reference
+		for(let childFolder of folder.folderList){
+			delete childFolder.parentFolder;
+			//incase of folder also delete recrusively more such relationships
+			delete childFolder.fileList;
+			delete childFolder.folderList;
+		}
+
+		for(let file of folder.fileList){
+			delete file.parentFolder;
+		}
+		return folder;
+	}
+
 	checkAndCreateNewFolder(name:string,currentFolder:string,user:any):Promise<any>{
 		
 		return this.fileOrFolder(name,true,currentFolder,user).
@@ -95,7 +146,7 @@ export class FileSystemBackend{
 			}
 			return this.db.query(updateParentsList).
 			then((v:any[])=>{
-				return this.db.query(`Update ${type} set parentFolder='${v[0]['@rid']}'`)
+				return this.db.query(`Update ${type} set parentFolder='${v[0]['@rid']}' where @rid = '${fileOrFolder['@rid']}'`)
 			}).
 			then((v:any[])=>{
 				return {code:200,response:{status:0,message:"Success",folder:fileOrFolder}};
