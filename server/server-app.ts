@@ -9,13 +9,15 @@ import session = require('express-session');
 import { UserBackend,AuthenticationResult,statusCodeForLogin,statusCodeForSignup } from './user.backend';
 import { FileSystemBackend } from './filesystem.backend';
 import { SchemaBackend } from './schema.backend';
-const multer = require('multer');
+import * as multer from 'multer';
+// const multer = require('multer');
+const uploader=multer({dest: "./uploads/"}).any();
 
 export class ServerApp {
     
 	private app: express.Application;
 	private db:orientjs.Db;
-	private multer:any;
+	// private uploader:any;
 	private userBackend:UserBackend;
 	private fileSystemBackend:FileSystemBackend;
 	private developerFeatures:SchemaBackend;
@@ -25,7 +27,6 @@ export class ServerApp {
 		this.db=db;
 		this.fileSystemBackend=new FileSystemBackend(this.db);
 		this.userBackend=new UserBackend(this.db,this.fileSystemBackend);
-		// this.userBackend=new UserBackend(this.db);
 		this.developerFeatures=new SchemaBackend(this.db);
 	}
     
@@ -40,17 +41,12 @@ export class ServerApp {
 		//TODO Replace with mongo connect or redis store, in memory is not suitable for production
 		this.app.use(session({secret:"sdf923jk23asf01gasds42",saveUninitialized:true,resave:false}));
 
+		//setup file uploads using multer
+		this.app.use(uploader);
 		this.configureAPIRoutes();
 		
 		//static resources (is amongst the main folders in the root of the project)
 		this.app.use('/', express.static(path.join(__dirname, '../', 'dist')));//for one level
-
-		//setup file uploads using multer
-		this.multer=multer({
-			dest: "./uploads/"
-		}).any();
-		this.app.use(this.multer);
-
 
 		//all other routes are handled by angular
 		this.app.get('/*', this._homePage);//this should be in the end
@@ -92,7 +88,7 @@ export class ServerApp {
 		});
 
 		this.app.post('/api/sample-upload', (req:express.Request, res:express.Response) =>{
-			this.multer(req,res,(error:Error)=>{
+			uploader(req,res,(error:Error)=>{
 				winston.debug("got a file here ");
 				if(error){
 					console.error("Error occured while uploading file");
@@ -198,7 +194,15 @@ export class ServerApp {
 			if(!loggedInUser){
 				res.status(401).send("user not found");
 			}else{
-				jsonHeader(res).status(200).send(JSON.stringify({result:"upload-file works"}));
+				let file=(<any>req).files[0];
+				let parentFolder=(<any>req).body.parentFolder;
+				uploader(req,res,(err:Error)=>{
+					return this.fileSystemBackend.checkAndCreateNewFile(file,parentFolder,loggedInUser).
+					then((attempt:any)=>{
+						jsonHeader(res).status(200).send(JSON.stringify(attempt.response));
+					});
+				})
+				
 			}
 		});
 

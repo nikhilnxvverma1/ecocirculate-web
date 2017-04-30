@@ -80,11 +80,11 @@ export class FileSystemBackend{
 					modificationDate:new Date()
 				}).one().
 				then((r:any)=>{
-					return this.updateFolderAttributes(r,currentFolder,user);
+					return this.updateFileOrFolderAttributes(r,true,currentFolder,user);
 				}).
 				then((result:any)=>{
 					if(result.response.status==0){
-						return this.attachFileOrFolderFolderToParent(result.response.folder,true,currentFolder,user);
+						return this.attachFileOrFolderFolderToParent(result.response.fileOrFolder,true,currentFolder,user);
 					}else{
 						return result;
 					}
@@ -98,16 +98,48 @@ export class FileSystemBackend{
 		});
 	}
 
-	private updateFolderAttributes(f:any,containerFolder:any,user:any):Promise<any>{
+	checkAndCreateNewFile(file:any,currentFolder:string,user:any):Promise<any>{
+		
+		return this.fileOrFolder(file.originalname,false,currentFolder,user).
+		then((r:any)=>{
+			if(r.item==null){
+				return this.db.insert().into('File').set({
+					name:file.originalname,
+					creationDate:new Date(),
+					modificationDate:new Date(),
+					filepath:file.path
+				}).one().
+				then((r:any)=>{
+					return this.updateFileOrFolderAttributes(r,false,currentFolder,user);
+				}).
+				then((result:any)=>{
+					if(result.response.status==0){
+						return this.attachFileOrFolderFolderToParent(result.response.fileOrFolder,false,currentFolder,user);
+					}else{
+						return result;
+					}
+				});
+			}else{
+				return {code:500,response:{status:1,message:"File name already exists"}};
+			}
+		}).catch((error:Error)=>{
+			winston.error("New File insertion: "+error.message);
+			return {code:500,response:{status:1,message:error.message}}
+		});
+	}
+
+	private updateFileOrFolderAttributes(f:any,isFolder:boolean,containerFolder:any,user:any):Promise<any>{
+		let type=isFolder?"Folder":"File";
+		
 		let query:string;
 		if(containerFolder==null){
-			query=`Update Folder set owner='${user['@rid']}' return after @this where @rid = '${f['@rid']}'`;
+			query=`Update ${type} set owner='${user['@rid']}' return after @this where @rid = '${f['@rid']}'`;
 		}else{
-			query=`Update Folder set parentFolder = '${containerFolder}', owner='${user['@rid']}' return after @this where @rid = '${f['@rid']}'`;
+			query=`Update ${type} set parentFolder = '${containerFolder}', owner='${user['@rid']}' return after @this where @rid = '${f['@rid']}'`;
 		}
 		return this.db.query(query).
 		then((v:any[])=>{
-			return {code:200,response:{status:0,message:"Success",folder:v[0]}};
+			return {code:200,response:{status:0,message:"Success",fileOrFolder:v[0]}};
 		});
 	}
 
