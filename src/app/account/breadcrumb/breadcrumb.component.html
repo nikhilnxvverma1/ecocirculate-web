@@ -4,12 +4,22 @@
 		{{fileSystem.currentWorkingDirectory()}}
 	</div>
 
-	<button class="side-button">
+	<button class="side-button" (click)="openNewFolderPrompt()">
 		New Folder
 	</button>
 	
 	<button class="side-button">
-		New File
+		Upload file
 	</button>
 
 </div>
+<div id="new-folder-prompt" *ngIf="newFolder!=null">
+	<form (ngSubmit)="createNewFolder()" #newFolderForm="ngForm">
+		<input id="new-folder-name" type="text" name="name" [(ngModel)]="newFolder.name" required>
+		<button [disabled]="!newFolderForm.form.valid" type="button" (click)="createNewFolder()">Create</button>
+		<button type="button" (click)="dismissNewFolder()">Cancel</button>
+	</form>
+</div>
+<ng-container *ngIf="shouldShowMessage">
+	{{message}}
+</ng-container>

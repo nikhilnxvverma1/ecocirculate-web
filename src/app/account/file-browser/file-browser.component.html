@@ -1,6 +1,9 @@
 <app-breadcrumb [fileSystem]="fileSystem"></app-breadcrumb>
 
 <div class="explorer">
-	<app-folder *ngFor="let item of folderList" [folder]="item"></app-folder>
-	<app-file *ngFor="let item of fileList" [file]="item"></app-file>
+	<app-folder *ngFor="let item of folderList" [folder]="item" (folderSelected)="selectFolder($event)"
+	(openFolder)="openFolder($event)"
+	></app-folder>
+	<app-file *ngFor="let item of fileList" [file]="item" (fileSelected)="selectFile($event)"
+	(openFile)="openFile($event)"></app-file>
 </div>

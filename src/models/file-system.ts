@@ -6,6 +6,9 @@ export class FileSystem{
 	topLevelFolders:Folder[]=[];
 	topLevelFiles:File[]=[];
 
+	selectedFolder:Folder;
+	selectedFile:File;
+
 	currentWorkingDirectory():string{
 		return "/some/directory/to/cwd";
 	}

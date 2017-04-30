@@ -9,6 +9,9 @@ $container-height:40px;
 		float:right;
 		height: $container-height;
 		line-height: $container-height;
+		border:none;
+		background:none;
+		color:blue;
 	}
 
 	.cwd-area{

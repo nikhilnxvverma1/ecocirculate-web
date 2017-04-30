@@ -38,8 +38,26 @@ export class FileBrowserComponent implements OnInit {
 			file.name=`File-${i+1}`;
 			this.fileSystem.topLevelFiles.push(file);
 		}
-		
+	}
 
+	selectFolder(folder:Folder){
+		console.log("will select folder "+folder.name);
+		this.fileSystem.selectedFolder=folder;
+		this.fileSystem.selectedFile=null;
+	}
+
+	openFolder(folder:Folder){
+		console.log("will open folder "+folder.name);
+	}
+
+	selectFile(file:File){
+		console.log("will select file "+file.name);
+		this.fileSystem.selectedFile=file;
+		this.fileSystem.selectedFile=null;
+	}
+
+	openFile(file:File){
+		console.log("will open file "+file.name);
 	}
 
 }
