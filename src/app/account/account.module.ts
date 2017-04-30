@@ -10,6 +10,7 @@ import { FileBrowserComponent } from './file-browser/file-browser.component';
 import { BreadcrumbComponent } from './breadcrumb/breadcrumb.component';
 import { FileComponent } from './file/file.component';
 import { FolderComponent } from './folder/folder.component';
+import { FileSystemService } from './file-system.service';
 
 
 @NgModule({
@@ -19,6 +20,7 @@ import { FolderComponent } from './folder/folder.component';
 	FormsModule,
 	AccountRoutingModule,
   ],
+  providers:[FileSystemService],
   schemas:[CUSTOM_ELEMENTS_SCHEMA],
   declarations: [HomeComponent, FileBrowserComponent, BreadcrumbComponent, FileComponent, FolderComponent]
 })

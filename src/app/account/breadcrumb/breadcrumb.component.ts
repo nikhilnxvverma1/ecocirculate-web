@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Input } from '@angular/core';
 import { FileSystem,Folder } from '../../../models/file-system';
+import { FileSystemService } from '../file-system.service';
 
 @Component({
   selector: 'app-breadcrumb',
@@ -15,7 +16,9 @@ export class BreadcrumbComponent implements OnInit {
 	private shouldShowMessage=false;
 	private message:string;
 
-	constructor() { }
+	constructor(
+		private fileSystemService:FileSystemService
+	) { }
 
 	ngOnInit() {
 	}
@@ -32,9 +35,14 @@ export class BreadcrumbComponent implements OnInit {
 
 	createNewFolder(){
 		console.log("Will create new folder of name "+this.newFolder.name);
-		//TODO call the service
-		this.newFolderPrompt=false;
-		this.newFolder=null;
+		// call the service
+		this.fileSystemService.createNewFolder(this.newFolder,this.fileSystem).
+		subscribe((v:any)=>{
+			this.newFolder.rid=v['@rid'];
+			this.fileSystem.insertFolderUnderCurrentFolder(this.newFolder);
+			this.newFolderPrompt=false;
+			this.newFolder=null;
+		});
 	}
 
 
