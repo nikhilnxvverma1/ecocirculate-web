@@ -94,7 +94,8 @@ export class SchemaBackend{
 		return this.createClassIfNotExists(FILE,[
 			{name:"name",type:"String"},
 			{name:"filepath",type:"String"},
-			{name:"uploadDate",type:"Date"}
+			{name:"uploadDate",type:"Date"},
+			{name:"owner",type:"Link", linkedClass:USER}
 		],"V");//extends the generic 'Vertex' class
 	}
 
@@ -102,7 +103,8 @@ export class SchemaBackend{
 		return this.createClassIfNotExists(FOLDER,[
 			{name:"name",type:"String"},
 			{name:"creationDate",type:"Date"},
-			{name:"modificationDate",type:"Date"}
+			{name:"modificationDate",type:"Date"},
+			{name:"owner",type:"Link", linkedClass:USER}
 		],"V");//extends the generic 'Vertex' class
 	}
 

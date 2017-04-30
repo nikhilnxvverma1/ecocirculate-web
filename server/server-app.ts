@@ -160,7 +160,12 @@ export class ServerApp {
 			if(!loggedInUser){
 				res.status(401).send("user not found");
 			}else{
-				jsonHeader(res).status(200).send(JSON.stringify({result:"new-folder works"}));
+				let name=(<any>req).body.name;
+				let currentFolder=(<any>req).body.currentFolder;
+				this.fileSystemBackend.checkAndCreateNewFolder(name,currentFolder,loggedInUser).
+				then((attempt:any)=>{
+					jsonHeader(res).status(attempt.code).send(JSON.stringify(attempt.response));
+				})
 			}
 		})
 
