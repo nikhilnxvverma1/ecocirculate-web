@@ -4,6 +4,9 @@ import Promise=require('bluebird');
 
 
 const USER="User";
+const FILE="File";
+const FOLDER="Folder";
+const FILESYSTEM="FileSystem";
 const LOCATION="Location";
 
 export class SchemaBackend{
@@ -20,7 +23,16 @@ export class SchemaBackend{
 		return this.db.query("DROP CLASS "+LOCATION+" IF EXISTS UNSAFE").
 		then((v:any)=>{
 			return this.db.query("DROP CLASS "+USER+" IF EXISTS UNSAFE")
-		});
+		}).
+		then((v:any)=>{
+			return this.db.query("DROP CLASS "+FILE+" IF EXISTS UNSAFE");
+		}).
+		then((v:any)=>{
+			return this.db.query("DROP CLASS "+FOLDER+" IF EXISTS UNSAFE");
+		}).
+		then((v:any)=>{
+			return this.db.query("DROP CLASS "+FILESYSTEM+" IF EXISTS UNSAFE");
+		})
 	}
 
 	/**
@@ -31,7 +43,127 @@ export class SchemaBackend{
 		return this.ensureLocation().
 		then((createdClass:ojs.Class)=>{
 			return this.ensureUser();
-		});
+		}).
+		then((c:ojs.Class)=>{
+			return this.ensureFile();
+		}).
+		then((c:ojs.Class)=>{
+			return this.ensureFolder();
+		}).
+		then((c:ojs.Class)=>{
+			return this.ensureFolderLinksToFileList();
+		}).
+		then((c:ojs.Class)=>{
+			return this.ensureFolderLinksToFolderList();
+		}).
+		then((c:ojs.Class)=>{
+			return this.ensureFolderLinksBackToParentFolder();
+		}).
+		then((c:ojs.Class)=>{
+			return this.ensureFileLinksBackToParentFolder();
+		}).
+		then((c:ojs.Class)=>{
+			return this.ensureFileSystem();
+		})
+	}
+
+	private ensureFile():Promise<ojs.Class>{
+		return this.createClassIfNotExists(FILE,[
+			{name:"name",type:"String"},
+			{name:"filepath",type:"String"},
+			{name:"uploadDate",type:"Date"}
+		],"V");//extends the generic 'Vertex' class
+	}
+
+	private ensureFolder():Promise<ojs.Class>{
+		return this.createClassIfNotExists(FOLDER,[
+			{name:"name",type:"String"},
+			{name:"creationDate",type:"Date"},
+			{name:"modificationDate",type:"Date"}
+		],"V");//extends the generic 'Vertex' class
+	}
+
+	private ensureFileSystem():Promise<ojs.Class>{
+		return this.createClassIfNotExists(FILESYSTEM,[
+			{name:"topLevelFolders",type:"LinkList",linkedClass:FOLDER},
+			{name:"topLevelFiles",type:"LinkList",linkedClass:FILE}
+		],"V");//extends the generic 'Vertex' class
+	}
+
+	private ensureFolderLinksToFileList():Promise<ojs.Class>{
+		return this.db.class.get(FOLDER).
+		then((c:ojs.Class)=>{
+			return c.property.get("fileList").
+			then((progresssion:ojs.Property)=>{
+				if(progresssion==null){
+					winston.info("Creating a link between folder and its file list");
+					return c.property.create({name:"fileList", type:"LinkList", linkedClass:FILE}).
+					then((p:ojs.Property)=>{
+						return c;
+					})
+				}else{
+					return c;
+				}
+			})
+
+		})
+	}
+
+	private ensureFolderLinksToFolderList():Promise<ojs.Class>{
+		return this.db.class.get(FOLDER).
+		then((c:ojs.Class)=>{
+			return c.property.get("folderList").
+			then((progresssion:ojs.Property)=>{
+				if(progresssion==null){
+					winston.info("Creating a link between folder and its folder list");
+					return c.property.create({name:"folderList", type:"LinkList", linkedClass:FOLDER}).
+					then((p:ojs.Property)=>{
+						return c;
+					})
+				}else{
+					return c;
+				}
+			})
+
+		})
+	}
+
+	private ensureFolderLinksBackToParentFolder():Promise<ojs.Class>{
+		return this.db.class.get(FOLDER).
+		then((c:ojs.Class)=>{
+			return c.property.get("parentFolder").
+			then((progresssion:ojs.Property)=>{
+				if(progresssion==null){
+					winston.info("Creating a back reference to the parent folder in Folder class");
+					return c.property.create({name:"parentFolder", type:"Link", linkedClass:FOLDER}).
+					then((p:ojs.Property)=>{
+						return c;
+					})
+				}else{
+					return c;
+				}
+			})
+
+		})
+	}
+
+	private ensureFileLinksBackToParentFolder():Promise<ojs.Class>{
+		return this.db.class.get(FILE).
+		then((c:ojs.Class)=>{
+			return c.property.get("parentFolder").
+			then((progresssion:ojs.Property)=>{
+				if(progresssion==null){
+					winston.info("Creating a back reference to the parent folder in File class");
+					return c.property.create({name:"parentFolder", type:"Link", linkedClass:FOLDER}).
+					then((p:ojs.Property)=>{
+						return c;
+					})
+				}else{
+					return c;
+				}
+			})
+
+		})
 	}
 
 	private ensureUser():Promise<ojs.Class>{
