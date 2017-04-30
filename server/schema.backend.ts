@@ -15,6 +15,26 @@ export class SchemaBackend{
 	}
 
 	/**
+	 * Warning: Deletes the records in the database for all tables
+	 */
+	deleteDatabaseRecords():Promise<any>{
+		winston.warn("Deleting DB records");
+		return this.db.query("DELETE VERTEX "+LOCATION).
+		then((v:any)=>{
+			return this.db.query("DELETE VERTEX "+USER)
+		}).
+		then((v:any)=>{
+			return this.db.query("DELETE VERTEX "+FILE);
+		}).
+		then((v:any)=>{
+			return this.db.query("DELETE VERTEX "+FOLDER);
+		}).
+		then((v:any)=>{
+			return this.db.query("DELETE VERTEX "+FILESYSTEM);
+		})
+	}
+
+	/**
 	 * Warning: Drops the entire DB unsafely.
 	 * Returns with the promise of the last class dropped in order
 	 */
@@ -64,6 +84,9 @@ export class SchemaBackend{
 		}).
 		then((c:ojs.Class)=>{
 			return this.ensureFileSystem();
+		}).
+		then((c:ojs.Class)=>{
+			return this.ensureUserLinksToFileSystem();
 		})
 	}
 
@@ -155,6 +178,25 @@ export class SchemaBackend{
 				if(progresssion==null){
 					winston.info("Creating a back reference to the parent folder in File class");
 					return c.property.create({name:"parentFolder", type:"Link", linkedClass:FOLDER}).
+					then((p:ojs.Property)=>{
+						return c;
+					})
+				}else{
+					return c;
+				}
+			})
+
+		})
+	}
+
+	private ensureUserLinksToFileSystem():Promise<ojs.Class>{
+		return this.db.class.get(USER).
+		then((c:ojs.Class)=>{
+			return c.property.get("fileSystem").
+			then((progresssion:ojs.Property)=>{
+				if(progresssion==null){
+					winston.info("Creating a link between user and file system");
+					return c.property.create({name:"fileSystem", type:"Link", linkedClass:FILESYSTEM}).
 					then((p:ojs.Property)=>{
 						return c;
 					})

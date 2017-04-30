@@ -1,10 +1,11 @@
 import ojs= require('orientjs');
 import winston=require('winston');
 import Promise=require('bluebird');
+import { FileSystemBackend } from './filesystem.backend';
 
 export class UserBackend{
 
-	constructor(private db:ojs.Db){
+	constructor(private db:ojs.Db,private fileSystemBackend:FileSystemBackend){
 	}
 
 	checkAndCreateNewUser(user:any):Promise<number>{
@@ -14,7 +15,10 @@ export class UserBackend{
 			if(records.length>0){
 				return 2;//Email already taken
 			}else{
-				return this.insertNewUser(user);
+				return this.fileSystemBackend.createFilesystem().
+				then((r:ojs.Record)=>{
+					return this.insertNewUser(user,r);
+				})
 			}
 		}).catch((error:Error)=>{
 			winston.error("Users retrieval : "+error.message);
@@ -22,7 +26,7 @@ export class UserBackend{
 		})
 	}
 
-	private insertNewUser(user:any):Promise<number>{
+	private insertNewUser(user:any,fileSystem:ojs.Record):Promise<number>{
  		return this.db.insert().into('User').set({
 			firstName:user.firstName,
 			lastName:user.lastName,

@@ -8,6 +8,7 @@ import bodyParser = require('body-parser');
 import session = require('express-session');
 import { UserBackend,AuthenticationResult,statusCodeForLogin,statusCodeForSignup } from './user.backend';
 import { FileSystemBackend } from './filesystem.backend';
+import { SchemaBackend } from './schema.backend';
 const multer = require('multer');
 
 export class ServerApp {
@@ -17,13 +18,15 @@ export class ServerApp {
 	private multer:any;
 	private userBackend:UserBackend;
 	private fileSystemBackend:FileSystemBackend;
+	private developerFeatures:SchemaBackend;
 
-    
 	constructor(db?:orientjs.Db) {
 		this.app = express();
 		this.db=db;
-		this.userBackend=new UserBackend(this.db);
 		this.fileSystemBackend=new FileSystemBackend(this.db);
+		this.userBackend=new UserBackend(this.db,this.fileSystemBackend);
+		// this.userBackend=new UserBackend(this.db);
+		this.developerFeatures=new SchemaBackend(this.db);
 	}
     
     public setRoutes() {        //the order matters here
@@ -54,6 +57,39 @@ export class ServerApp {
 	}
 
 	private configureAPIRoutes(){
+
+		// delete all db records(developer feature)
+		//TODO WARNING: remove on production
+		this.app.delete('/dev/delete-db-records', (req:express.Request, res:express.Response) =>{
+			winston.warn("Developer feature: destroying all records in the database!!!");
+			(<any>req).session.destroy();
+			this.developerFeatures.deleteDatabaseRecords().
+			then((attempt:number)=>{
+				jsonHeader(res).status(200).send(JSON.stringify({result:"All DB records destroyed!"}));
+			});
+		});
+
+		// Drop entire database scheme (developer feature)
+		//TODO WARNING: remove on production
+		this.app.delete('/dev/drop-db', (req:express.Request, res:express.Response) =>{
+			winston.warn("Developer feature: dropping the entire database schema!!!");
+			(<any>req).session.destroy();
+			this.developerFeatures.dropDatabaseSchema().
+			then((attempt:number)=>{
+				jsonHeader(res).status(200).send(JSON.stringify({result:"DB Schema Dropped!"}));
+			});
+		});
+
+		// Ensure database schema and creates it if needed, prefers creating from scratch (developer feature)
+		//TODO WARNING: remove on production
+		this.app.post('/dev/ensure-db-schema', (req:express.Request, res:express.Response) =>{
+			winston.warn("Developer feature: Ensuring database schema, creating tables if needed");
+			(<any>req).session.destroy();
+			this.developerFeatures.ensureDatabaseSchema().
+			then((attempt:any)=>{
+				jsonHeader(res).status(200).send(JSON.stringify({result:"DB Schema Ensured"}));
+			});
+		});
 
 		this.app.post('/api/sample-upload', (req:express.Request, res:express.Response) =>{
 			this.multer(req,res,(error:Error)=>{
@@ -183,6 +219,7 @@ export class ServerApp {
 			}
 		});
 
+		//delete a file
 		this.app.delete('/api/delete-file', (req:express.Request, res:express.Response) => {
 			winston.debug("Deleting the requested file");
 			let loggedInUser=(<any>req).session.user;
@@ -192,6 +229,8 @@ export class ServerApp {
 				jsonHeader(res).status(200).send(JSON.stringify({result:"delete-file works"}));
 			}
 		});
+
+		//delete a complete folder
 		this.app.delete('/api/delete-folder', (req:express.Request, res:express.Response) => {
 			winston.debug("Deleting the requested folder");
 			let loggedInUser=(<any>req).session.user;

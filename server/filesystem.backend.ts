@@ -2,9 +2,20 @@ import ojs= require('orientjs');
 import winston=require('winston');
 import Promise=require('bluebird');
 
+const FILESYSTEM="FileSystem";
+
 export class FileSystemBackend{
 
 	constructor(private db:ojs.Db){
+	}
+
+	createFilesystem():Promise<ojs.Record>{
+		return this.db.insert().into(FILESYSTEM).one().then((r:ojs.Record)=>{
+			return r;//success
+		}).catch((error:Error)=>{
+			winston.error("Error while creating file system: "+error.message);
+			return null;
+		});
 	}
 
 	checkAndCreateNewFolder(user:any):Promise<number>{
