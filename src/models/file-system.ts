@@ -5,6 +5,10 @@ export class FileSystem{
 	folderStack:Folder[];
 	topLevelFolders:Folder[]=[];
 	topLevelFiles:File[]=[];
+
+	currentWorkingDirectory():string{
+		return "/some/directory/to/cwd";
+	}
 }
 
 export class File{

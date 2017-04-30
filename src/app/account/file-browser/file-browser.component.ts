@@ -38,6 +38,7 @@ export class FileBrowserComponent implements OnInit {
 			file.name=`File-${i+1}`;
 			this.fileSystem.topLevelFiles.push(file);
 		}
+		
 
 	}
 

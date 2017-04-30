@@ -1,4 +1,4 @@
-<app-breadcrumb></app-breadcrumb>
+<app-breadcrumb [fileSystem]="fileSystem"></app-breadcrumb>
 
 <div class="explorer">
 	<app-folder *ngFor="let item of folderList" [folder]="item"></app-folder>

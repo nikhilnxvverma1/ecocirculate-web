@@ -1,0 +1,8 @@
+$left-gap:20px;
+$right-gap:45px;
+$bottom-gap:20px;
+svg{
+	margin-left: $left-gap;
+	margin-right: $right-gap;
+	margin-bottom: $bottom-gap;
+}
