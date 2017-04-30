@@ -124,15 +124,83 @@ export class ServerApp {
 			if(!loggedInUser){
 				res.status(401).send("user not found");
 			}else{
-				jsonHeader(res).status(200).send(JSON.stringify({result:"This works"}));
-				// this.fileSystemBackend.checkAndCreateNewFolder((<any>req).body,(<any>req).session.user).
-				// then((attempt:any)=>{
-				// 	//respond back with an appropriate status code
-				// 	jsonHeader(res).status(attempt.code).send(JSON.stringify(attempt.response));
-				// });
+				jsonHeader(res).status(200).send(JSON.stringify({result:"new-folder works"}));
 			}
 		})
 
+		//rename Folder
+		this.app.post('/api/rename-folder', (req:express.Request, res:express.Response) => {
+			winston.debug("Renaming a folder");
+			let loggedInUser=(<any>req).session.user;
+			if(!loggedInUser){
+				res.status(401).send("user not found");
+			}else{
+				jsonHeader(res).status(200).send(JSON.stringify({result:"rename-folder works"}));
+			}
+		});
+
+		//rename File
+		this.app.post('/api/rename-file', (req:express.Request, res:express.Response) => {
+			winston.debug("Renaming a file");
+			let loggedInUser=(<any>req).session.user;
+			if(!loggedInUser){
+				res.status(401).send("user not found");
+			}else{
+				jsonHeader(res).status(200).send(JSON.stringify({result:"rename-file works"}));
+			}
+		});
+
+		//upload a file
+		this.app.post('/api/upload-file', (req:express.Request, res:express.Response) => {
+			winston.debug("Uploading a new file");
+			let loggedInUser=(<any>req).session.user;
+			if(!loggedInUser){
+				res.status(401).send("user not found");
+			}else{
+				jsonHeader(res).status(200).send(JSON.stringify({result:"upload-file works"}));
+			}
+		});
+
+		//get file system
+		this.app.get('/api/file-system', (req:express.Request, res:express.Response) => {
+			winston.debug("Getting the file system for the current user");
+			let loggedInUser=(<any>req).session.user;
+			if(!loggedInUser){
+				res.status(401).send("user not found");
+			}else{
+				jsonHeader(res).status(200).send(JSON.stringify({result:"file-system works"}));
+			}
+		});
+
+		//download a file
+		this.app.get('/api/download-file', (req:express.Request, res:express.Response) => {
+			winston.debug("Downloading a requested file");
+			let loggedInUser=(<any>req).session.user;
+			if(!loggedInUser){
+				res.status(401).send("user not found");
+			}else{
+				jsonHeader(res).status(200).send(JSON.stringify({result:"download-file works"}));
+			}
+		});
+
+		this.app.delete('/api/delete-file', (req:express.Request, res:express.Response) => {
+			winston.debug("Deleting the requested file");
+			let loggedInUser=(<any>req).session.user;
+			if(!loggedInUser){
+				res.status(401).send("user not found");
+			}else{
+				jsonHeader(res).status(200).send(JSON.stringify({result:"delete-file works"}));
+			}
+		});
+		this.app.delete('/api/delete-folder', (req:express.Request, res:express.Response) => {
+			winston.debug("Deleting the requested folder");
+			let loggedInUser=(<any>req).session.user;
+			if(!loggedInUser){
+				res.status(401).send("user not found");
+			}else{
+				jsonHeader(res).status(200).send(JSON.stringify({result:"delete-folder works"}));
+			}
+		});
 
 
 	}
