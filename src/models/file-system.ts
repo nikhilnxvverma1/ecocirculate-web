@@ -3,6 +3,8 @@ export class FileSystem{
 	rid:string;
 	pwd:string;
 	folderStack:Folder[];
+	topLevelFolders:Folder[]=[];
+	topLevelFiles:File[]=[];
 }
 
 export class File{

@@ -1,3 +1,6 @@
-<p>
-  file-browser works!
-</p>
+<app-breadcrumb></app-breadcrumb>
+
+<div class="explorer">
+	<app-folder *ngFor="let item of folderList" [folder]="item"></app-folder>
+	<app-file *ngFor="let item of fileList" [file]="item"></app-file>
+</div>

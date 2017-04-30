@@ -1,0 +1,8 @@
+$explorer-side-padding:40px;
+$explorer-top-down-padding:20px;
+.explorer{
+	padding-left: $explorer-side-padding;
+	padding-right: $explorer-side-padding;
+	padding-top: $explorer-top-down-padding;
+	padding-bottom: $explorer-top-down-padding;
+}

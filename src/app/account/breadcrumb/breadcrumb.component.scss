@@ -1,0 +1,18 @@
+$container-height:40px;
+.container{
+	background-color: round;
+	width: 100%;
+	height: $container-height;
+	line-height: $container-height;
+	// padding-left:30px;
+	.side-button{
+		float:right;
+		height: $container-height;
+		line-height: $container-height;
+	}
+
+	.cwd-area{
+		margin-left: 20px;
+		display: inline;
+	}
+}
