@@ -2,6 +2,7 @@
   "name": "eco-circulate",
   "version": "0.0.0",
   "angular-cli": {},
+  "description":"Cloud Application to circulate paper documents in soft copy form.",
   "scripts": {
     "ng": "ng",
     "start": "gulp start:server",
